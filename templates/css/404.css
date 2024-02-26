@@ -1,0 +1,45 @@
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    /* background-image: linear-gradient(to right, rgb(126, 124, 27), rgb(46, 1, 97)); /* Dégradé linéaire de gauche à droite de bleu à jaune */
+  }
+  
+  .navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 60px; /* Ajusté à 80px comme demandé */
+    color: white;
+    padding: 0 20px;
+    background-color: black;
+  }
+  
+  .navbar a {
+    color: white;
+    text-decoration: none;
+    margin: 0 15px;
+  }
+  
+  .navbar a:hover {
+    text-decoration: underline;
+  }
+  
+  .logo {
+    font-size: 24px;
+  }
+  
+  .nav-links {
+    display: flex;
+    align-items: center;
+  }
+  
+  .search-icon {
+    cursor: pointer;
+  }
+
+.error-message {
+    display: flex;
+    flex-direction: column;
+    margin-top: 100px; /* Ajuster en fonction de la hauteur de votre en-tête */
+    align-items: center;
+}
