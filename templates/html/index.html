@@ -13,10 +13,15 @@
         <div class="logo">DIGIEVENTS</div>
         <div class="nav-links">
             <a href="/" id="active">Accueil</a>
-            <a href="/artistes">Artistes</a>
+            <a href="#">Artistes</a>
+            <a href="#">Lieux</a>
+            <a href="#">Dates</a>
+            <a href="#">A propos</a>
+
+            <!-- <a href="/artistes">Artistes</a>
             <a href="/lieux">Lieux</a>
             <a href="/dates">Dates</a>
-            <a href="/apropos">A propos</a>
+            <a href="/apropos">A propos</a> -->
         </div>
         <div class="search-icon">🔍</div>
     </div>
@@ -56,15 +61,22 @@
         </div>
         <div class="events-grid">
             <!-- Répétez ce bloc pour chaque carte, pour un total de 28 cartes (4x7) -->
-            {{range .Artistes}}
+            {{range .ArtisteLocation}}
             <div class="event-card">
-                <img src={{.Image}}>
+                <img src={{.Artist.Image}}>
                 <div class="card-text">
-                    <h2>{{.Name}}</h2>
-                    {{range .Members}}
-                    <p>{{.}} </p>
+                    <h2>Nom</h2>
+                    <p>{{.Artist.Name}}</p>
+                    <h2>Members :</h2>
+                    {{range .Artist.Members}}
+                    <a>{{.}} </a>
                     {{end}}
-                    <p>{{.FirstAlbum}} </p>
+                    <h2>Lieux</h2>
+                    {{range .Location.Locations}}
+                    <a>{{.}}</a>
+                    {{end}}
+                    <h2>Date de création de premier Album</h2>
+                    <p>{{.Artist.FirstAlbum}} </p>
                 </div>
             </div>
             {{end}}

@@ -19,33 +19,60 @@ var ApiRelations = "https://groupietrackers.herokuapp.com/api/relation"
 
 func HandleIndex(w http.ResponseWriter, r *http.Request) {
 	artistesChanel := make(chan []models.Artist)
-
-	go loadArtistsFromAPi(artistesChanel)
-	artistsData := <-artistesChanel
-
+	errorCh := make(chan error)
 	locationsChanel := make(chan []models.Location)
-
-	go loadLocationsFromAPi(locationsChanel)
-	locationsData := <-locationsChanel
-
 	datesChanel := make(chan []models.Date)
-
-	go loadDatesFromAPi(datesChanel)
-	datesData := <-datesChanel
-
 	relationsChanel := make(chan []models.Relation)
 
+	go loadArtistsFromAPi(artistesChanel, errorCh)
+	go loadLocationsFromAPi(locationsChanel)
+	go loadDatesFromAPi(datesChanel)
 	go loadRelationsFromAPi(relationsChanel)
-	relationsData := <-relationsChanel
 
-	tmpl, err := template.ParseFiles("templates/html/index.html")
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	err = tmpl.Execute(w, map[string]interface{}{"Artistes": artistsData, "Locations": locationsData, "Dates": datesData, "Relations": relationsData})
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	select {
+	case artistsData := <-artistesChanel:
+		select {
+		case locationsData := <-locationsChanel:
+			select {
+			case datesData := <-datesChanel:
+				select {
+				case relationsData := <-relationsChanel:
+
+					var artistLocationData []models.ArtistLocation
+
+					for i, v := range artistsData {
+						var artistLocation models.ArtistLocation
+						artistLocation.Artist = v
+						artistLocation.Location = locationsData[i]
+						artistLocationData = append(artistLocationData, artistLocation)
+					}
+
+					tmpl, err := template.ParseFiles("templates/html/index.html")
+					if err != nil {
+						http.Error(w, err.Error(), http.StatusInternalServerError)
+						return
+					}
+					err = tmpl.Execute(w, map[string]interface{}{"Artistes": artistsData, "Locations": locationsData, "Dates": datesData, "Relations": relationsData, "ArtisteLocation": artistLocationData})
+					if err != nil {
+						http.Error(w, err.Error(), http.StatusInternalServerError)
+						return
+					}
+				case err := <-errorCh:
+					http.Error(w, "Erreur lors de l'appel à l'API: "+err.Error(), http.StatusInternalServerError)
+					return
+				}
+			case err := <-errorCh:
+				http.Error(w, "Erreur lors de l'appel à l'API: "+err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+		case err := <-errorCh:
+			http.Error(w, "Erreur lors de l'appel à l'API: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+	case err := <-errorCh:
+		http.Error(w, "Erreur lors de l'appel à l'API: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -53,9 +80,14 @@ func HandleIndex(w http.ResponseWriter, r *http.Request) {
 
 func HandleArtistes(w http.ResponseWriter, r *http.Request) {
 	artistesChanel := make(chan []models.Artist)
+	errorCh := make(chan error)
 
-	go loadArtistsFromAPi(artistesChanel)
+	go loadArtistsFromAPi(artistesChanel, errorCh)
 	artistsData := <-artistesChanel
+
+	// artistesLocationsChanel :=  make(chan []models.Location)
+
+	// go loadOneLocationFromAPi(artistesLocationsChanel,artistsData)
 
 	locationsChanel := make(chan []models.Location)
 
@@ -82,8 +114,9 @@ func HandleArtistes(w http.ResponseWriter, r *http.Request) {
 
 func HandleLieux(w http.ResponseWriter, r *http.Request) {
 	artistesChanel := make(chan []models.Artist)
+	errorCh := make(chan error)
 
-	go loadArtistsFromAPi(artistesChanel)
+	go loadArtistsFromAPi(artistesChanel, errorCh)
 	artistsData := <-artistesChanel
 
 	// if err != nil {
@@ -105,8 +138,9 @@ func HandleLieux(w http.ResponseWriter, r *http.Request) {
 
 func HandleDates(w http.ResponseWriter, r *http.Request) {
 	artistesChanel := make(chan []models.Artist)
+	errorCh := make(chan error)
 
-	go loadArtistsFromAPi(artistesChanel)
+	go loadArtistsFromAPi(artistesChanel, errorCh)
 	artistsData := <-artistesChanel
 
 	// if err != nil {
@@ -128,8 +162,9 @@ func HandleDates(w http.ResponseWriter, r *http.Request) {
 
 func HandleApropos(w http.ResponseWriter, r *http.Request) {
 	artistesChanel := make(chan []models.Artist)
+	errorCh := make(chan error)
 
-	go loadArtistsFromAPi(artistesChanel)
+	go loadArtistsFromAPi(artistesChanel, errorCh)
 	artistsData := <-artistesChanel
 
 	// if err != nil {
@@ -176,10 +211,10 @@ func NotFoundHandler(w http.ResponseWriter, r *http.Request) {
 // 	return data, nil
 // }
 
-func loadArtistsFromAPi(resultChan chan<- []models.Artist) (interface{}, error) {
+func loadArtistsFromAPi(resultChan chan<- []models.Artist, errorCh chan<- error) (interface{}, error) {
 	res, err := http.Get(ApiArtistes)
 	if err != nil {
-		fmt.Println("Erreur lors du chargement des données :", err)
+		errorCh <- err
 		return nil, err
 	}
 	defer res.Body.Close()
@@ -187,7 +222,7 @@ func loadArtistsFromAPi(resultChan chan<- []models.Artist) (interface{}, error) 
 	var artists []models.Artist
 	err = json.NewDecoder(res.Body).Decode(&artists)
 	if err != nil {
-		fmt.Println("Erreur lors du décodage des données :", err)
+		errorCh <- err
 		return nil, err
 	}
 
@@ -207,6 +242,24 @@ func loadLocationsFromAPi(resultChan chan<- []models.Location) (interface{}, err
 	var locations []models.Location
 	err = json.NewDecoder(res.Body).Decode(&result)
 	locations = result["index"]
+	if err != nil {
+		fmt.Println("Erreur lors du décodage des données :", err)
+		return nil, err
+	}
+	resultChan <- locations
+	return locations, nil
+}
+
+func loadOneLocationFromAPi(resultChan chan<- []models.Location, url string) (interface{}, error) {
+	res, err := http.Get(url)
+	if err != nil {
+		fmt.Println("Erreur lors du chargement des données :", err)
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	var locations []models.Location
+	err = json.NewDecoder(res.Body).Decode(&locations)
 	if err != nil {
 		fmt.Println("Erreur lors du décodage des données :", err)
 		return nil, err
