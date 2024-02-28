@@ -47,7 +47,7 @@ func HandleIndex(w http.ResponseWriter, r *http.Request) {
 						artistLocationData = append(artistLocationData, artistLocation)
 					}
 
-					tmpl, err := template.ParseFiles("templates/html/index.html")
+					tmpl, err := template.ParseFiles("index.html")
 					if err != nil {
 						http.Error(w, err.Error(), http.StatusInternalServerError)
 						return
