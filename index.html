@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="../css/index.css" />
+    <title>Digievents</title>
+</head>
+
+<body>
+    <div class="navbar">
+        <div class="logo">DIGIEVENTS</div>
+        <div class="nav-links">
+            <a href="/" id="active">Accueil</a>
+            <a href="#">Artistes</a>
+            <a href="#">Lieux</a>
+            <a href="#">Dates</a>
+            <a href="#">A propos</a>
+
+            <!-- <a href="/artistes">Artistes</a>
+            <a href="/lieux">Lieux</a>
+            <a href="/dates">Dates</a>
+            <a href="/apropos">A propos</a> -->
+        </div>
+        <div class="search-icon">🔍</div>
+    </div>
+    <div class="banner">
+        <video autoplay muted loop id="bannerVideo">
+        <!-- <source src="../media/DigiEvevents.mp4" type="video/mp4"> -->
+        <source src="https://player.vimeo.com/external/440214116.sd.mp4?s=775e1d151a615965889750f507d3d29135092a98&profile_id=164&oauth2_token_id=57447761" type="video/mp4">
+        Votre navigateur ne supporte pas la vidéo.
+      </video>
+        <div class="info-row">
+            <div class="info-column">
+                <h1>{{len .Artistes}}</h1>
+                <h2>Artistes</h2>
+            </div>
+            <div class="info-column">
+                <h1>{{len .Relations}}</h1>
+                <h2>Evènements</h2>
+            </div>
+            <div class="info-column">
+                <h1>{{len .Locations}}</h1>
+                <h2>Lieux</h2>
+            </div>
+            <div class="info-column">
+                <h1>{{len .Dates}}</h1>
+                <h2>Dates</h2>
+            </div>
+        </div>
+    </div>
+
+    <section class="events-section">
+        <div class="events-header">
+            <div>
+                <h2 class="events-title">Nos Artistes</h2>
+                <div class="divider"></div>
+            </div>
+            <!-- <div class="events-filter">Filtre</div> -->
+        </div>
+        <div class="events-grid">
+            <!-- Répétez ce bloc pour chaque carte, pour un total de 28 cartes (4x7) -->
+            {{range .ArtisteLocation}}
+            <div class="event-card">
+                <img src={{.Artist.Image}}>
+                <div class="card-text">
+                    <h2>Nom</h2>
+                    <p>{{.Artist.Name}}</p>
+                    <h2>Members :</h2>
+                    {{range .Artist.Members}}
+                    <a>{{.}} </a>
+                    {{end}}
+                    <h2>Lieux</h2>
+                    {{range .Location.Locations}}
+                    <a>{{.}}</a>
+                    {{end}}
+                    <h2>Date de création de premier Album</h2>
+                    <p>{{.Artist.FirstAlbum}} </p>
+                </div>
+            </div>
+            {{end}}
+
+            <!-- Ajoutez d'autres cartes ici -->
+        </div>
+    </section>
+
+    <footer>
+        <div class="footer-bottom ">
+            <p>© 2024 DigifemmesTeam Tous droits réservés</p>
+        </div>
+    </footer>
+    <!-- Le reste de votre contenu HTML ici -->
+</body>
+
+</html>
